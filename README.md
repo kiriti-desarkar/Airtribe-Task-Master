@@ -58,6 +58,8 @@ A robust, production-ready backend system for task tracking and team collaborati
 | Maven | Dependency management |
 | H2 Database | Test database |
 | JUnit 5 | Testing framework |
+| Selenium 4.20 | End-to-end UI testing |
+| WebDriverManager 5.8 | Automatic ChromeDriver management |
 
 ---
 
@@ -228,6 +230,34 @@ src/main/java/com/tasktracker/
 
 ---
 
+## 🖥️ Frontend UI
+
+A lightweight single-page application is served as static assets directly by Spring Boot from `src/main/resources/static/`.
+
+| File | Purpose |
+|------|---------|
+| `index.html` | SPA shell with all sections: auth, dashboard, task details |
+| `app.js` | Vanilla JS — API calls, DOM manipulation, JWT in `localStorage`, UI state transitions |
+| `style.css` | Base stylesheet |
+
+### Key UI Elements
+
+| Section | Element IDs |
+|---------|-------------|
+| Registration | `#reg-username`, `#reg-email`, `#reg-password`, `#reg-fullname`, `#btn-register` |
+| Login | `#login-username`, `#login-password`, `#btn-login` |
+| Dashboard | `#dashboard-section`, `#user-greeting`, `#btn-logout` |
+| Profile | `#prof-bio`, `#btn-update-profile` |
+| Task Creation | `#task-title`, `#task-desc`, `#task-due-date`, `#btn-create-task` |
+| Task List | `#tasks-list`, `#btn-my-tasks`, `#status-filter`, `#search-input`, `#btn-search` |
+| Task Details | `#task-details-container`, `#det-status`, `#det-assignee`, `#btn-mark-completed` |
+| Assign Task | `#assign-user-id`, `#btn-assign-task` |
+| Comments | `#new-comment`, `#btn-add-comment`, `#comment-list` |
+| Attachments | `#new-attachment`, `#btn-upload`, `#attachment-list` |
+| Teams | `#new-team-name`, `#btn-create-team`, `#team-list` |
+
+---
+
 ## 🧪 Testing
 
 Run all tests:
@@ -235,11 +265,78 @@ Run all tests:
 mvn test
 ```
 
-Tests use **H2 in-memory database** for fast, isolated testing. Test coverage includes:
-- Authentication flows (register, login, validation)
-- Task CRUD operations
-- Task filtering and searching
-- Authorization enforcement
+Tests use **H2 in-memory database** (`@ActiveProfiles("test")`) for fast, isolated execution without affecting the development database.
+
+---
+
+### 1. API Integration Tests (MockMvc)
+
+Located in `src/test/java/com/tasktracker/controller/`.
+Uses `@SpringBootTest` + `@AutoConfigureMockMvc`.
+
+#### `AuthControllerTest` — 5 tests
+
+| # | Endpoint | Scenario | Expected |
+|---|----------|----------|----------|
+| 1 | `POST /api/auth/register` | Valid new user | `201 Created`, `success=true` |
+| 2 | `POST /api/auth/register` | Duplicate username | `400 Bad Request`, `success=false` |
+| 3 | `POST /api/auth/register` | Invalid email format | `400 Bad Request` |
+| 4 | `POST /api/auth/login` | Correct credentials | `200 OK`, non-empty `accessToken` |
+| 5 | `POST /api/auth/login` | Wrong password | `401 Unauthorized` |
+
+#### `TaskControllerTest` — 7 tests
+
+| # | Endpoint | Scenario | Expected |
+|---|----------|----------|----------|
+| 1 | `POST /api/tasks` | Create task | `201 Created`, correct title/priority/status |
+| 2 | `GET /api/tasks` | List tasks | `200 OK`, paginated, `totalElements` correct |
+| 3 | `GET /api/tasks?status=OPEN` | Filter by status | Returns only OPEN tasks |
+| 4 | `GET /api/tasks?search=login` | Keyword search | Returns matching tasks |
+| 5 | `PUT /api/tasks/{id}` | Update task | Updated title, status, priority returned |
+| 6 | `DELETE /api/tasks/{id}` | Delete task | `200 OK`; follow-up `GET` returns `404` |
+| 7 | `GET /api/tasks` | No auth header | `403 Forbidden` |
+
+---
+
+### 2. End-to-End Selenium UI Tests
+
+Located in `src/test/java/com/tasktracker/ui/SeleniumUserStoryTests.java`.
+
+**Setup:**
+- `@SpringBootTest(webEnvironment = RANDOM_PORT)` — boots the full Spring context on a random port.
+- `@ActiveProfiles("test")` — uses H2 in-memory DB.
+- **WebDriverManager** auto-downloads the matching ChromeDriver — no manual installation needed.
+- **Non-headless Chrome** — browser visibly opens so execution can be observed.
+- `@TestMethodOrder(OrderAnnotation.class)` — tests run in strict order; session state (JWT in `localStorage`) persists across tests.
+- `WebDriverWait` with 10 s timeout used for all element synchronisation.
+
+**Test Suite (6 ordered tests):**
+
+| Order | Test Name | User Stories | What It Tests |
+|-------|-----------|--------------|---------------|
+| 1 | Create Account and Login | US1 & US2 | Registers `seleniumuser`, verifies alert → logs in → asserts `#dashboard-section` visible and `#user-greeting` contains "Hi, seleniumuser" |
+| 2 | View and Update Profile | US3 | Enters bio in `#prof-bio` → clicks `#btn-update-profile` → asserts alert contains "Profile updated" |
+| 3 | Create, List, Filter & Search Tasks | US4, US5, US8 & US9 | Creates task (date injected via JS executor) → views My Tasks → filters `OPEN` → searches "Automated" → asserts `#tasks-list` contains "Automated Task" |
+| 4 | Create Team | US11 | Enters team name in `#new-team-name` → clicks `#btn-create-team` → asserts `#team-list` contains "Automation Team" |
+| 5 | Team Collaboration | US6, US7 & US10 | Opens task details → adds comment → uploads temp file attachment → marks task COMPLETED → assigns task → verifies all assertions |
+| 6 | Logout | US12 | Clicks `#btn-logout` → asserts `#auth-section` is visible |
+
+**Maven dependencies (test scope):**
+```xml
+<!-- Selenium UI Testing -->
+<dependency>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-java</artifactId>
+    <version>4.20.0</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>io.github.bonigarcia</groupId>
+    <artifactId>webdrivermanager</artifactId>
+    <version>5.8.0</version>
+    <scope>test</scope>
+</dependency>
+```
 
 ---
 
