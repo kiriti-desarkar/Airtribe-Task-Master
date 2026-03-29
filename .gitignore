@@ -1,0 +1,24 @@
+# Build output
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Uploads directory (runtime generated)
+uploads/
+test-uploads/
+
+# Environment files
+.env

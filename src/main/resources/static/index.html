@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="auth-section" class="section">
+    <h1>Welcome to Task Tracker</h1>
+    <div class="auth-forms">
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="text" id="login-username" placeholder="Username or Email">
+            <input type="password" id="login-password" placeholder="Password">
+            <button id="btn-login" onclick="login()">Login</button>
+        </div>
+        
+        <div id="register-form">
+            <h2>Create Account</h2>
+            <input type="text" id="reg-username" placeholder="Username">
+            <input type="email" id="reg-email" placeholder="Email">
+            <input type="password" id="reg-password" placeholder="Password">
+            <input type="text" id="reg-fullname" placeholder="Full Name">
+            <button id="btn-register" onclick="register()">Register</button>
+        </div>
+    </div>
+</div>
+
+<div id="dashboard-section" class="section" style="display:none;">
+    <div class="header">
+        <h1>Task Tracker Dashboard</h1>
+        <div><span id="user-greeting"></span> <button id="btn-logout" onclick="logout()">Logout</button></div>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="card" id="profile-container">
+        <h2>My Profile</h2>
+        <input type="text" id="prof-fullname" placeholder="Full Name">
+        <textarea id="prof-bio" placeholder="Bio"></textarea>
+        <button id="btn-update-profile" onclick="updateProfile()">Update Profile</button>
+    </div>
+
+    <!-- Teams Section -->
+    <div class="card" id="teams-container">
+        <h2>Teams</h2>
+        <div class="flex">
+            <input type="text" id="new-team-name" placeholder="Team Name">
+            <button id="btn-create-team" onclick="createTeam()">Create Team</button>
+        </div>
+        <ul id="team-list"></ul>
+        <div id="invite-member-div" style="display:none; margin-top:10px;">
+            <h4>Invite via User ID to Team: <span id="selected-team-name"></span></h4>
+             <input type="hidden" id="invite-team-id">
+             <input type="number" id="invite-user-id" placeholder="User ID">
+             <button id="btn-invite-member" onclick="inviteMember()">Invite Member</button>
+        </div>
+    </div>
+
+    <!-- Tasks Creation -->
+    <div class="card" id="task-create-container">
+        <h2>Create Task</h2>
+        <input type="text" id="task-title" placeholder="Title">
+        <textarea id="task-desc" placeholder="Description"></textarea>
+        <input type="date" id="task-due-date">
+        <button id="btn-create-task" onclick="createTask()">Create Task</button>
+    </div>
+
+    <!-- Tasks Board & Controls -->
+    <div class="card" id="task-board-container">
+        <h2>Task Board</h2>
+        <div class="filters">
+            <input type="text" id="search-input" placeholder="Search tasks...">
+            <button id="btn-search" onclick="fetchTasks()">Search</button>
+
+            <select id="status-filter" onchange="fetchTasks()">
+                <option value="">All Statuses</option>
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="COMPLETED">Completed</option>
+            </select>
+            
+            <button id="btn-my-tasks" onclick="fetchMyTasks()">Load My Tasks</button>
+            <button id="btn-all-tasks" onclick="fetchTasks()">Load All Tasks</button>
+        </div>
+
+        <div id="tasks-list"></div>
+    </div>
+
+    <!-- Task Details Modal (simulated inline) -->
+    <div class="card" id="task-details-container" style="display:none; border: 2px solid #007bff;">
+        <h2>Task Details: <span id="det-title"></span></h2>
+        <input type="hidden" id="det-id">
+        <p>Status: <b id="det-status"></b> | Assignee: <span id="det-assignee"></span></p>
+        
+        <div class="controls">
+            <button id="btn-mark-completed" onclick="markTaskCompleted()">Mark Completed</button>
+            <input type="number" id="assign-user-id" placeholder="User ID" style="width: 100px;">
+            <button id="btn-assign-task" onclick="assignTask()">Assign Task</button>
+        </div>
+
+        <h4>Comments</h4>
+        <ul id="comment-list"></ul>
+        <div class="flex">
+            <input type="text" id="new-comment" placeholder="Add a comment...">
+            <button id="btn-add-comment" onclick="addComment()">Comment</button>
+        </div>
+
+        <h4>Attachments</h4>
+        <ul id="attachment-list"></ul>
+        <div class="flex">
+            <input type="file" id="new-attachment">
+            <button id="btn-upload" onclick="uploadAttachment()">Upload File</button>
+        </div>
+        <button style="margin-top: 15px;" onclick="closeTaskDetails()">Close Details</button>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
